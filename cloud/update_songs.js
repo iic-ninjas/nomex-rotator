@@ -10,7 +10,24 @@ Parse.Cloud.job("update_songs", function(request, status) {
     _.each(users, function(user) {
       promise = promise.then(function() {
         return getSongByDay(user).then(function(song){
-          console.log("song: " + song.get('song_name'))
+          console.log("song change for " + user.get('username') + ": " + song.get('artist_name') + " " + song.get('song_name'));
+          return Parse.Cloud.httpRequest({
+            method: 'POST',
+            url: "https://api.parse.com/1/functions/changeSong",
+            headers: {
+              "X-Parse-Application-Id": Parse.config.get('nomex_application_id'),
+              "X-Parse-REST-API-Key": Parse.config.get('nomex_api_key'),
+              "Content-Type": "application/json"
+            },
+            body: {
+              "token": user.get('nomex_id'),
+              "song": "SONGID", // ??? 
+              "name": song.get('song_name'),
+              "artist": song.get('artist_name'),
+              "youtubeId": song.get('youtube_id'),
+              "startAtInSeconds": song.get('second_offset')
+            }
+          });
         });
       });
     });
