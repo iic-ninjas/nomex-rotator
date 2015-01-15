@@ -15,8 +15,8 @@ Parse.Cloud.job("update_songs", function(request, status) {
             method: 'POST',
             url: "https://api.parse.com/1/functions/changeSong",
             headers: {
-              "X-Parse-Application-Id": Parse.config.get('nomex_application_id'),
-              "X-Parse-REST-API-Key": Parse.config.get('nomex_api_key'),
+              "X-Parse-Application-Id": Parse.Config.get('nomex_application_id'),
+              "X-Parse-REST-API-Key": Parse.Config.get('nomex_api_key'),
               "Content-Type": "application/json"
             },
             body: {
@@ -31,10 +31,12 @@ Parse.Cloud.job("update_songs", function(request, status) {
         });
       });
     });
+    return promise;
   }).then(function() {
       status.success("awesome");
     }, function(err) {
-      status.error(err);
+      console.log(err);
+      status.error(err.message);
     }
   );
 
