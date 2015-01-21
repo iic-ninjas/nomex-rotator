@@ -1,5 +1,8 @@
 var _ = require('underscore');
 
+var getSongByDay = require('cloud/weekday.js');
+var getSongByWeather = require('cloud/weather.js');
+
 Parse.Cloud.job("update_songs", function(request, status) {
   // Set up to modify user data
   Parse.Cloud.useMasterKey();
@@ -9,9 +12,7 @@ Parse.Cloud.job("update_songs", function(request, status) {
     var promise = Parse.Promise.as();
     _.each(users, function(user) {
       promise = promise.then(function() {
-        return getSongByDay(user).then(function(song){
-          return updateSong(user, song);
-        });
+        return updateSongForUser(user);
       });
     });
     return promise;
@@ -24,7 +25,24 @@ Parse.Cloud.job("update_songs", function(request, status) {
 
 });
 
-function updateSong(user, song) {
+function updateSongForUser(user) {
+  var getSongFunction = null;
+  if (user.get('update_method') === 'weekday') {
+    getSongFunction = getSongByDay;
+  } else if (user.get('update_method') === 'weather') {
+    getSongFunction = getSongByWeather;
+  }
+
+  return getSongFunction(user).then(function(song){
+    if (song != null) {
+      return updateSongInNomex(user, song);
+    } else {
+      return Promise.as();
+    }
+  });
+}
+
+function updateSongInNomex(user, song) {
   return Parse.Config.get().then(function(parseConfig) {
     console.log("Updating " + user.get('username') + "'s song to '" + song.get('artist_name') + " - " + song.get('song_name') + "'")
     return Parse.Cloud.httpRequest({
@@ -47,16 +65,3 @@ function updateSong(user, song) {
   });
 }
 
-function getSongByDay(user) {
-  var weekday = new Date().getDay();
-  
-  var scheduleQuery = new Parse.Query("WeekdaySchedule");
-  scheduleQuery.equalTo("weekday", weekday);
-  scheduleQuery.equalTo("user", user);
-
-
-  return scheduleQuery.first().then(function(schedule) {
-    var songQuery = new Parse.Query("Song");
-    return songQuery.get(schedule.get('song').id);
-  });
-}
