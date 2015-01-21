@@ -37,7 +37,7 @@ function updateSongForUser(user) {
     if (song != null) {
       return updateSongInNomex(user, song);
     } else {
-      return Promise.as();
+      return Parse.Promise.as();
     }
   });
 }
