@@ -29,8 +29,10 @@ function updateSongForUser(user) {
   var getSongFunction = null;
   if (user.get('update_method') === 'weekday') {
     getSongFunction = getSongByDay;
+    console.log("updating songs for " + user.get('username') + " by weekday.");
   } else if (user.get('update_method') === 'weather') {
     getSongFunction = getSongByWeather;
+    console.log("updating songs for " + user.get('username') + " by weather.");
   }
 
   return getSongFunction(user).then(function(song){
@@ -44,7 +46,7 @@ function updateSongForUser(user) {
 
 function updateSongInNomex(user, song) {
   return Parse.Config.get().then(function(parseConfig) {
-    console.log("Updating " + user.get('username') + "'s song to '" + song.get('artist_name') + " - " + song.get('song_name') + "'")
+    console.log("Updating " + user.get('username') + "'s song to '" + song.get('artist_name') + " - " + song.get('song_name') + "'");
     return Parse.Cloud.httpRequest({
       method: 'POST',
       url: "https://api.parse.com/1/functions/changeSong",
